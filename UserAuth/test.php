@@ -1,16 +1,16 @@
 <?php 
-	session_start();
-	require_once 'userAuth.class.php';
+    session_start();
+    require_once 'userAuth.class.php';
 
-	$USER = new userAuth();
+    $USER = new userAuth();
 
-	if( $USER->isLogin()) {
-		echo $USER->showEmail();
-	}
+    if( $USER->isLogin()) {
+        echo $USER->showEmail();
+    }
 
 
     if (isset($_POST['login-button'])) {
-    	$login = $USER->Login($_POST['Lemail'], $_POST['LPass']);
+        $login = $USER->Login($_POST['Lemail'], $_POST['LPass']);
         if ($login['State'] == true) {
             echo $USER->showEmail();
         }
@@ -30,7 +30,7 @@
     }
 
     if (isset($_POST['logout-button'])) {
-    	$USER->Logout();
+        $USER->Logout();
     }
 
 
@@ -40,30 +40,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title></title>
+    <title></title>
 </head>
 <body>
-	<form id="login" method="POST">
+    <form id="login" method="POST">     
+        <input id="Lemail" name="Lemail" placeholder="Email" required="required" type="email" autocomplete="off">
+        <input id="LPass" name="LPass" placeholder="Password" required="required" type="password" autocomplete="off">
+        <button type="submit" id="login-button" name="login-button">Dive</button>
                 
-                <input id="Lemail" name="Lemail" placeholder="Email" required="required" type="email" autocomplete="off">
-                <input id="LPass" name="LPass" placeholder="Password" required="required" type="password" autocomplete="off">
-                <button type="submit" id="login-button" name="login-button">Dive</button>
-                
-            </form>
+    </form>
 
-            <form id="register" method="POST">
-                <input id="Remail" name="Remail" placeholder="Your_Email@secretsea.com" required="required" type="text" autocomplete="off" >
-                <input id="RPass1" name="RPass1" placeholder="Your Password" required="required" type="password" autocomplete="off">
-                <input id="RPass2" name="RPass2" placeholder="Your Password" required="required" type="password" autocomplete="off">
-
-               
-                <button type="submit" id="register-button" name="register-button">Register</button>
-            </form>
+    <form id="register" method="POST">
+        <input id="Remail" name="Remail" placeholder="Your_Email@secretsea.com" required="required" type="text" autocomplete="off" >
+        <input id="RPass1" name="RPass1" placeholder="Your Password" required="required" type="password" autocomplete="off">
+        <input id="RPass2" name="RPass2" placeholder="Your Password" required="required" type="password" autocomplete="off">     
+        <button type="submit" id="register-button" name="register-button">Register</button>
+    </form>
 
 
-            <form id="logout" method="POST">
-                <button id="logout-button" name="logout-button">Logout</button>
-            </form>
+    <form id="logout" method="POST">
+        <button id="logout-button" name="logout-button">Logout</button>
+    </form>
     
 
 </body>
