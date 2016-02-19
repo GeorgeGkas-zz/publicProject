@@ -11,16 +11,16 @@
 			'' => '', 
 			'' => '', 
 			'' => '', 
-			);
+		);
 
 		private $L_UserEmail	=	NULL;
-		private $L_UserPass		=	NULL;
+		private $L_UserPass	=	NULL;
 
 
 		private $R_UserEmail	=	NULL;
 		private $R_UserPass1	=	NULL;
 		private $R_UserPass2	=	NULL;
-		private $ReCaptcha		=	NULL;
+		private $ReCaptcha	=	NULL;
 
 
 		public function showEmail() {
