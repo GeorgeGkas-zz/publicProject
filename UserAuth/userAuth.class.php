@@ -1,34 +1,26 @@
 <?php
     require_once 'main.class.php';
-    require_once '../lib/bcrypt.php';
+    require_once $_SERVER['DOCUMENT_ROOT'].'/classes/bcrypt.php';
 
     class userAuth extends Main
     {
-        protected $ErrorCodes = array(
-            '' => '',
-            '' => '', 
-            '' => '', 
-            '' => '', 
-            '' => '', 
-            '' => '', 
-            );
 
         private $L_UserEmail    =   NULL;
         private $L_UserPass     =   NULL;
-
 
         private $R_UserEmail    =   NULL;
         private $R_UserPass1    =   NULL;
         private $R_UserPass2    =   NULL;
         private $ReCaptcha      =   NULL;
 
+        private $LogoutEmails    =   NULL;
 
         public function showEmail() {
             return $this->getUserEmail();
         }
 
         public function isLogin() {
-            # REDIRECT USER IF LOGIN CREDENTIAL EXISTS
+
             if($this->UserIsLogin()) {
                 return true;
             }
@@ -37,6 +29,15 @@
             }
         }
 
+
+        private function UserIsLogin() {
+            if (isset($_SESSION['login'])) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
 
 
         public function Login($UserEmail, $UserPass) {
@@ -55,9 +56,14 @@
             
         }
 
-        public function Logout(/*$emails*/) {
+        public function Logout($emails) {
+            /*$this->LogoutEmails = json_decode(stripslashes($emails));
+            if(!$this->RemoveOnlineState()) {
+                return $this->setReturnState('We had problems connected to our databases. Please try again later');
+            }*/
             $this->clearUserEmail();
-            session_destroy();
+            $indexUrl = $this->redirectToIndex();
+            return $this->setReturnState($indexUrl, true);
         }
 
         public function Register($UserEmail, $UserPass1, $UserPass2, $ReCaptcha) {
@@ -67,9 +73,9 @@
             $this->ReCaptcha = $ReCaptcha;
 
 
-            /*if (!$this->valid_Captcha()) {
+            if (!$this->valid_Captcha()) {
                 return $this->setReturnState('Please verify yourself as human.');
-            }*/
+            }
 
             if (!$this->valid_RegisterEmail()) {
                 return $this->setReturnState('Only letters and nubers are allowed for email. Please see <a href="#">security</a> for more details.');
@@ -137,8 +143,6 @@
             }
         }
 
-
-
         private function valid_Captcha() {
             # FIRST WE CHECK IF THE FORM WAS POSTED BY A HUMAN
             if ($this->ReCaptcha == NULL) {
@@ -172,7 +176,7 @@
         }
 
         private function exist_RegisterEmail() {
-            $this->R_UserEmail =  $this->R_UserEmail.'@secretsea.com';
+            $this->R_UserEmail = $this->R_UserEmail.'@secretsea.com';
             try {
                 # STH means "Statement Handle"
                 $STH = $this->DHB->prepare("SELECT * FROM Users WHERE UserEmail = :user_email");
@@ -183,8 +187,10 @@
                     # Email has not registered yet
                     return false;
                 }
+                else {
+                     return true;
+                }
                 
-                return true;
                 
             }
             catch(PDOException $e) {
@@ -194,7 +200,7 @@
         }
 
         private function doRegister() {
-            $hashedPassword = password_hash($R_UserPass1, PASSWORD_BCRYPT, array("cost" => 13));                
+            $hashedPassword = password_hash($this->R_UserPass1, PASSWORD_BCRYPT, array("cost" => 13));                
 
             $STH = $this->DHB->prepare("INSERT INTO Users(UserEmail, UserPass) values(:user_email, :user_pass)");
             $STH->bindParam(':user_email', $this->R_UserEmail);
@@ -213,8 +219,46 @@
             return $this->setReturnState(null, true);
         }
 
+        private function setUserEmail($email) {
+            $_SESSION['login'] = $email;
+        }
 
-    }
+        private function clearUserEmail() {
+            unset($_SESSION['login']); 
+            session_destroy();
+        }
+
+        private function redirectToIndex() {
+            $host  = $_SERVER['HTTP_HOST'];
+            $link = "http://".$host."/test.php";
+            return $link;
+        }
 
 
+        private function RemoveOnlineState() {
+            $MyEmail = $this->getUserEmail().';';
+
+            foreach ($this->LogoutEmails as $person) {
+                try {
+                    $STH = $this->DHB->prepare("UPDATE `Users` SET `OnlineFriends`=REPLACE(`OnlineFriends`, :my_email, '') WHERE `UserEmail` = :friend_email");
+                    $STH->bindParam(':my_email', $MyEmail);
+                    $STH->bindParam(':friend_email', $person);
+                    $STH->execute();
+
+                    if (!$STH) {
+                      file_put_contents('../PDOErrors.txt', $STH->errorInfo(), FILE_APPEND);
+                      return false;
+                    }
+
+                } catch (PDOException $e) {
+                    file_put_contents('../PDOErrors.txt', $e->getMessage(), FILE_APPEND);
+                    return false;
+                }
+            }
+
+            return true;
+        } # End RemoveOnlineState()
+
+
+    } # End of User Auth Class
 ?>
